@@ -1,6 +1,6 @@
 protocol View {
     associatedtype Body: View
-    var body: Body { get }
+    @ViewBuilder var body: Body { get }
 }
 
 protocol BuiltinView {
@@ -25,6 +25,14 @@ extension View {
             b._buildNodeTree(node)
             return
         }
+
+        if !node.needsRebuild {
+            for child in node.children {
+                child.rebuildIfNeeded()
+            }
+            return
+        }
+
         node.view = AnyBuiltinView(self)
         
         // check if we actually need to execute the body

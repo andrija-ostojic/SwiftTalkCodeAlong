@@ -13,8 +13,6 @@ final class Node {
     var view: BuiltinView!
     
     func rebuildIfNeeded() {
-        if needsRebuild {
-            view._buildNodeTree(self)
-        }
+        view._buildNodeTree(self)
     }
 }
