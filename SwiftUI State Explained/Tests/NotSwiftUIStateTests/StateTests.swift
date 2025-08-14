@@ -1,10 +1,13 @@
 import XCTest
 @testable import NotSwiftUIState
 
+fileprivate var sampleBodyCount = 0
+
 final class StateTests: XCTestCase {
 
     override func setUp() {
-
+        nestedBodyCount = 0
+        sampleBodyCount = 0
     }
 
     func testSimple() {
@@ -90,5 +93,49 @@ final class StateTests: XCTestCase {
         node.rebuildIfNeeded()
 
         XCTAssertEqual(nestedButton.title, "1")
+    }
+
+    func testUnusedBinding() {
+        struct Nested: View {
+            @Binding var counter: Int
+            var body: some View {
+                Button("") {
+                    counter += 1
+                }
+                .debug {
+                    nestedBodyCount += 1
+                }
+            }
+        }
+        struct Sample: View {
+            @State var counter =  0
+            var body: some View {
+                Button("\(counter)") { }
+                Nested(counter: $counter)
+                    .debug {
+                        sampleBodyCount += 1
+                    }
+            }
+        }
+
+        let s = Sample()
+        let node = Node()
+        s.buildNodeTree(node)
+
+        var nestedNode: Node {
+            node.children[0].children[1]
+        }
+        var nestedButton: Button {
+            nestedNode.children[0].view as! Button
+        }
+
+        XCTAssertEqual(sampleBodyCount, 1)
+        XCTAssertEqual(nestedBodyCount, 1)
+
+        nestedButton.action()
+        node.rebuildIfNeeded()
+
+        XCTAssertEqual(sampleBodyCount, 2)
+        XCTAssertEqual(nestedBodyCount, 1)
     }
 }

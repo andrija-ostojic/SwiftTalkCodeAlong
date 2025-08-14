@@ -21,7 +21,7 @@ struct State<Value>: StateProperty {
     }
 
     var projectedValue: Binding<Value> {
-        Binding(get: { wrappedValue }, set: { wrappedValue = $0 })
+        box.value.binding
     }
 }
 
@@ -33,19 +33,24 @@ final class Box<Value> {
     }
 }
 
-var currentGlobalBodyBode: Node? = nil
+var currentBodies: [Node] = []
+var currentGlobalBodyNode: Node? { currentBodies.last }
 
 final class StateBox<Value> {
     private var _value: Value
     private var dependencies: [Weak<Node>] = []
+    var binding: Binding<Value> = Binding(get: { fatalError("error") }, set: { _ in fatalError("rr") })
 
     init(_ value: Value) {
         self._value = value
+        self.binding = Binding(get: { [unowned self] in self.value }, set: { [unowned self] in self.value = $0 })
     }
 
     var value: Value {
         get {
-            dependencies.append(Weak(currentGlobalBodyBode!))
+            if let node = currentGlobalBodyNode {
+                dependencies.append(Weak(node))
+            }
             // skip duplicates and remove nil entries
             return _value
         }

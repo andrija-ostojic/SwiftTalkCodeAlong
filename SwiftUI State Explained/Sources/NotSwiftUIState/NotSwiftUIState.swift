@@ -42,7 +42,8 @@ extension View {
             return
         }
 
-        currentGlobalBodyBode = node
+        currentBodies.append(node)
+        defer { currentBodies.removeLast() }
 
         let shouldRunBody = node.needsRebuild || !self.equalToPrevious(node)
         if !shouldRunBody {
