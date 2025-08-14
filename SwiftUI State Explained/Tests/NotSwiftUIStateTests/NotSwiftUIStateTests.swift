@@ -13,6 +13,8 @@ extension View {
     }
 }
 
+let nestedModel = Model()
+
 var nestedBodyCount = 0
 var contentViewBodyCount = 0
 
@@ -30,6 +32,7 @@ final class NotSwiftUIStateTests: XCTestCase {
     override func setUp() {
         nestedBodyCount = 0
         contentViewBodyCount = 0
+        nestedModel.counter = 0
     }
 
     func testUpdate() {
@@ -144,5 +147,109 @@ final class NotSwiftUIStateTests: XCTestCase {
         node.rebuildIfNeeded()
         XCTAssertEqual(contentViewBodyCount, 2)
         XCTAssertEqual(nestedBodyCount, 1)
+    }
+
+    func testUnchangedNestedWithObservedObject() {
+        struct Nested: View {
+            @ObservedObject var model: Model = nestedModel
+            var isLarge: Bool = false
+            var body: some View {
+                nestedBodyCount += 1
+                return Button("Nested button", action: {})
+            }
+        }
+
+        struct ContentView: View {
+            @ObservedObject var model = Model()
+            var body: some View {
+                Button("\(model.counter)") {
+                    model.counter += 1
+                }
+                Nested()
+                    .debug { contentViewBodyCount += 1 }
+            }
+        }
+
+        let v = ContentView()
+        let node = Node()
+        v.buildNodeTree(node)
+        var button: Button {
+            node.children[0].children[0].view as! Button
+        }
+        XCTAssertEqual(contentViewBodyCount, 1)
+        XCTAssertEqual(nestedBodyCount, 1)
+        button.action()
+        node.rebuildIfNeeded()
+        XCTAssertEqual(contentViewBodyCount, 2)
+        XCTAssertEqual(nestedBodyCount, 1)
+    }
+
+    func testBinding1() {
+        struct Nested: View {
+            @Binding var counter: Int
+            var isLarge: Bool = false
+            var body: some View {
+                nestedBodyCount += 1
+                return Button("Nested button", action: {})
+            }
+        }
+
+        struct ContentView: View {
+            @ObservedObject var model = Model()
+            var body: some View {
+                Button("\(model.counter)") {
+                    model.counter += 1
+                }
+                Nested(counter: $model.counter)
+                    .debug { contentViewBodyCount += 1 }
+            }
+        }
+
+        let v = ContentView()
+        let node = Node()
+        v.buildNodeTree(node)
+        var button: Button {
+            node.children[0].children[0].view as! Button
+        }
+        XCTAssertEqual(contentViewBodyCount, 1)
+        XCTAssertEqual(nestedBodyCount, 1)
+        button.action()
+        node.rebuildIfNeeded()
+        XCTAssertEqual(contentViewBodyCount, 2)
+        XCTAssertEqual(nestedBodyCount, 2)
+    }
+
+    func testBinding2() {
+        struct Nested: View {
+            @Binding var counter: Int
+            var isLarge: Bool = false
+            var body: some View {
+                nestedBodyCount += 1
+                return Button("\(counter)", action: { counter += 1 })
+            }
+        }
+
+        struct ContentView: View {
+            @ObservedObject var model = Model()
+            var body: some View {
+                Nested(counter: $model.counter)
+                    .debug { contentViewBodyCount += 1 }
+            }
+        }
+
+        let v = ContentView()
+        let node = Node()
+        v.buildNodeTree(node)
+        var button: Button {
+            node.children[0].children[0].view as! Button
+        }
+        XCTAssertEqual(contentViewBodyCount, 1)
+        XCTAssertEqual(nestedBodyCount, 1)
+        XCTAssertEqual(button.title, "0")
+        button.action()
+        node.rebuildIfNeeded()
+        XCTAssertEqual(contentViewBodyCount, 2)
+        XCTAssertEqual(nestedBodyCount, 2)
+        XCTAssertEqual(button.title, "1")
     }
 }

@@ -8,8 +8,28 @@ protocol AnyObservedObject {
 struct ObservedObject<ObjectType: ObservableObject>: AnyObservedObject {
     private var box: ObservedObjectBox<ObjectType>
 
+    @dynamicMemberLookup
+    struct Wrapper {
+        var observedObject: ObservedObject
+
+        fileprivate init(_ o: ObservedObject<ObjectType>) {
+            observedObject = o
+        }
+
+        subscript<Value>(dynamicMember keyPath: ReferenceWritableKeyPath<ObjectType, Value>) -> Binding<Value> {
+            Binding(
+                get: { observedObject.wrappedValue[keyPath: keyPath] },
+                set: { observedObject.wrappedValue[keyPath: keyPath] = $0 }
+            )
+        }
+    }
+
     var wrappedValue: ObjectType {
         box.object
+    }
+
+    var projectedValue: Wrapper {
+        Wrapper(self)
     }
 
     func addDependency(_ node: Node) {
@@ -18,6 +38,12 @@ struct ObservedObject<ObjectType: ObservableObject>: AnyObservedObject {
 
     init(wrappedValue: ObjectType) {
         self.box = ObservedObjectBox(wrappedValue)
+    }
+}
+
+extension ObservedObject: Equatable {
+    static func == (lhs: ObservedObject, rhs: ObservedObject) -> Bool {
+        lhs.wrappedValue === rhs.wrappedValue
     }
 }
 
