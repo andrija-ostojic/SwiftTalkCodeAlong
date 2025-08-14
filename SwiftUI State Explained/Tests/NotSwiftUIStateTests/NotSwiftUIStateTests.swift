@@ -45,7 +45,7 @@ final class NotSwiftUIStateTests: XCTestCase {
         XCTAssertEqual(button.title, "1")
     }
 
-    func testChangedNested() {
+    func testConstantNested() {
         struct Nested: View {
             var body: some View {
                 nestedBodyCount += 1
@@ -78,7 +78,7 @@ final class NotSwiftUIStateTests: XCTestCase {
         XCTAssertEqual(nestedBodyCount, 1)
     }
 
-    func testConstantNested() {
+    func testChangedNested() {
         struct Nested: View {
             var counter: Int
             var body: some View {
@@ -110,5 +110,39 @@ final class NotSwiftUIStateTests: XCTestCase {
         node.rebuildIfNeeded()
         XCTAssertEqual(contentViewBodyCount, 2)
         XCTAssertEqual(nestedBodyCount, 2)
+    }
+
+    func testUnchangedNested() {
+        struct Nested: View {
+            var isLarge: Bool = false
+            var body: some View {
+                nestedBodyCount += 1
+                return Button("Nested button", action: {})
+            }
+        }
+
+        struct ContentView: View {
+            @ObservedObject var model = Model()
+            var body: some View {
+                Button("\(model.counter)") {
+                    model.counter += 1
+                }
+                Nested(isLarge: model.counter > 10)
+                    .debug { contentViewBodyCount += 1 }
+            }
+        }
+
+        let v = ContentView()
+        let node = Node()
+        v.buildNodeTree(node)
+        var button: Button {
+            node.children[0].children[0].view as! Button
+        }
+        XCTAssertEqual(contentViewBodyCount, 1)
+        XCTAssertEqual(nestedBodyCount, 1)
+        button.action()
+        node.rebuildIfNeeded()
+        XCTAssertEqual(contentViewBodyCount, 2)
+        XCTAssertEqual(nestedBodyCount, 1)
     }
 }

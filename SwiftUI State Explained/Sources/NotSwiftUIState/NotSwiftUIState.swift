@@ -19,6 +19,21 @@ extension View {
         }
     }
 
+    func equalToPrevious(_ node: Node) -> Bool {
+        guard let previousView = node.previousView as? Self else {
+            return false
+        }
+        let m1 = Mirror(reflecting: self)
+        let m2 = Mirror(reflecting: previousView)
+        for pair in zip(m1.children, m2.children) {
+            guard pair.0.label == pair.1.label else { return false }
+            let p1 = pair.0.value
+            let p2 = pair.1.value
+            if !isEqual(p1, p2) { return false }
+        }
+        return true
+    }
+
     func buildNodeTree(_ node: Node) {
         if let b = self as? BuiltinView {
             node.view = b
@@ -26,7 +41,8 @@ extension View {
             return
         }
 
-        if !node.needsRebuild {
+        let shouldRunBody = node.needsRebuild || !self.equalToPrevious(node)
+        if !shouldRunBody {
             for child in node.children {
                 child.rebuildIfNeeded()
             }
@@ -44,6 +60,7 @@ extension View {
             node.children = [Node()]
         }
         b.buildNodeTree(node.children[0])
+        node.previousView = self
         node.needsRebuild = false
     }
 }
