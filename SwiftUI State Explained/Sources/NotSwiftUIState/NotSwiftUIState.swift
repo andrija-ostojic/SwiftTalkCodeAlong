@@ -29,6 +29,7 @@ extension View {
             guard pair.0.label == pair.1.label else { return false }
             let p1 = pair.0.value
             let p2 = pair.1.value
+            if p1 is StateProperty { continue }
             if !isEqual(p1, p2) { return false }
         }
         return true
@@ -54,15 +55,34 @@ extension View {
         // check if we actually need to execute the body
 
         self.observeObjects(node)
-
+        self.restoreStateProperties(node)
         let b = body
         if node.children.isEmpty {
             node.children = [Node()]
         }
         b.buildNodeTree(node.children[0])
+        self.storeStateProperties(node)
         node.previousView = self
         node.needsRebuild = false
     }
+
+    func restoreStateProperties(_ node: Node) {
+        let m = Mirror(reflecting: self)
+        for (label, value) in m.children {
+            guard let prop = value as? StateProperty else { continue }
+            guard let propValue = node.stateProperties[label!] else { continue }
+            prop.value = propValue
+        }
+    }
+
+    func storeStateProperties(_ node: Node) {
+        let m = Mirror(reflecting: self)
+        for (label, value) in m.children {
+            guard let prop = value as? StateProperty else { continue }
+            node.stateProperties[label!] = prop.value
+        }
+    }
+
 }
 
 extension Never: View {
