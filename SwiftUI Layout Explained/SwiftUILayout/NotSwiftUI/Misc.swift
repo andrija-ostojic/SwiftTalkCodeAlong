@@ -2,7 +2,7 @@
 //  Misc.swift
 //  SwiftUILayout
 //
-//  Created by Andrija Ostojic on 16. 8. 2025..
+//  Created by Florian Kugler on 26-10-2020.
 //
 
 import SwiftUI
@@ -69,7 +69,7 @@ struct GeometryReader_<Content: View_>: View_, BuiltinView {
         let child = content(size)
         let childSize = child._size(proposed: size)
         context.saveGState()
-        context.align(childSize, in: size, alignment: .center)
+        context.align(childSize, in: size, alignment: .topLeading)
         child._render(context: context, size: childSize)
         context.restoreGState()
     }
