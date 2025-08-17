@@ -21,15 +21,15 @@ struct ContentView: View {
 
 
     var sample: some View_ {
-        Ellipse_()
-            .frame(width: 150)
+        Text_("Hello, world!")
+            .fixedSize()
             .frame(
                 minWidth: minWidth.enabled ? minWidth.0.rounded() : nil,
                 maxWidth: maxWidth.enabled ? maxWidth.0.rounded() : nil
             )
-            .overlay(GeometryReader_ { size in
-                Text_("\(Int(size.width))x\(Int(size.height))")
-            })
+//            .overlay(GeometryReader_ { size in
+//                Text_("\(Int(size.width))x\(Int(size.height))")
+//            })
             .border(NSColor.blue, width: 2)
             .frame(width: width.rounded(), height: 300)
             .border(NSColor.yellow, width: 2)

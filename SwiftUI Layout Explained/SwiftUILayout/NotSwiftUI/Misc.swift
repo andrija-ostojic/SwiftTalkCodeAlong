@@ -36,7 +36,7 @@ struct Overlay<Content: View_, O: View_>: View_, BuiltinView {
 
     func render(context: RenderingContext, size: CGSize) {
         content._render(context: context, size: size)
-        let childSize = overlay._size(proposed: size)
+        let childSize = overlay._size(proposed: ProposedSize(size))
         context.saveGState()
         context.align(childSize, in: size, alignment: alignment)
         overlay._render(context: context, size: childSize)
@@ -67,7 +67,7 @@ struct GeometryReader_<Content: View_>: View_, BuiltinView {
 
     func render(context: RenderingContext, size: CGSize) {
         let child = content(size)
-        let childSize = child._size(proposed: size)
+        let childSize = child._size(proposed: ProposedSize(size))
         context.saveGState()
         context.align(childSize, in: size, alignment: .topLeading)
         child._render(context: context, size: childSize)
@@ -75,12 +75,43 @@ struct GeometryReader_<Content: View_>: View_, BuiltinView {
     }
 
     func size(proposed: ProposedSize) -> CGSize {
-        return proposed
+        return proposed.orDefault
     }
 
     var swiftUI: some View {
         GeometryReader { proxy in
             content(proxy.size).swiftUI
         }
+    }
+}
+
+struct FixedSize<Content: View_>: View_, BuiltinView {
+    var content: Content
+    var horizontal: Bool
+    var vertical: Bool
+
+    func render(context: RenderingContext, size: CGSize) {
+        content._render(context: context, size: size)
+    }
+
+    func size(proposed: ProposedSize) -> CGSize {
+        var p = proposed
+        if horizontal {
+            p.width = nil
+        }
+        if vertical {
+            p.height = nil
+        }
+        return content._size(proposed: p)
+    }
+
+    var swiftUI: some View {
+        content.swiftUI.fixedSize(horizontal: horizontal, vertical: vertical)
+    }
+}
+
+extension View_ {
+    func fixedSize(horizontal: Bool = true, vertical: Bool = true) -> some View_ {
+        FixedSize(content: self, horizontal: horizontal, vertical: vertical)
     }
 }

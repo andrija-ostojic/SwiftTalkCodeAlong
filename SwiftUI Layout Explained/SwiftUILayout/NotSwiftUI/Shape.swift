@@ -46,10 +46,10 @@ struct ShapeView<S: Shape_>: BuiltinView, View_ {
     var color: NSColor =  .red
 
     func size(proposed: ProposedSize) -> CGSize {
-        return proposed
+        return proposed.orDefault
     }
 
-    func render(context: RenderingContext, size: ProposedSize) {
+    func render(context: RenderingContext, size: CGSize) {
         context.saveGState()
         context.setFillColor(color.cgColor)
         context.addPath(shape.path(in: CGRect(origin: .zero, size: size)))

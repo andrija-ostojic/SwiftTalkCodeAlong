@@ -17,9 +17,9 @@ struct FixedFrame<Content: View_>: View_, BuiltinView {
         let childSize = content._size(proposed: ProposedSize(width: width ?? proposed.width, height: height ?? proposed.height))
         return CGSize(width: width ?? childSize.width, height: height ?? childSize.height)
     }
-    func render(context: RenderingContext, size: ProposedSize) {
+    func render(context: RenderingContext, size: CGSize) {
         context.saveGState()
-        let childSize = content._size(proposed: size)
+        let childSize = content._size(proposed: ProposedSize(size))
         context.align(childSize, in: size, alignment: alignment)
         content._render(context: context, size: childSize)
         context.restoreGState()
@@ -40,13 +40,19 @@ struct FlexibleFrame<Content: View_>: View_, BuiltinView {
     var alignment: Alignment_
     var content: Content
 
-    func size(proposed: ProposedSize) -> CGSize {
-        var p = proposed
+    func size(proposed p: ProposedSize) -> CGSize {
+        var proposed = ProposedSize(width: p.width ?? idealWidth, height: p.height ?? idealHeight).orDefault
         if let min = minWidth, min > proposed.width {
-            p.width = min
+            proposed.width = min
         }
-        if let max = maxWidth, max < proposed.width {
-            p.width = max
+        if let max = maxWidth, max <  proposed.width {
+            proposed.width = max
+        }
+        if let min = minHeight, min > proposed.height {
+            proposed.height = min
+        }
+        if let max = maxHeight, max <  proposed.height {
+            proposed.height = max
         }
         var result = content._size(proposed: p)
         if let m = minWidth {
@@ -55,12 +61,18 @@ struct FlexibleFrame<Content: View_>: View_, BuiltinView {
         if let m = maxWidth {
             result.width = min(m, max(result.width, proposed.width))
         }
+        if let m = minHeight {
+            result.height = max(m, min(result.height, proposed.height))
+        }
+        if let m = maxHeight {
+            result.height = min(m, max(result.height, proposed.height))
+        }
         return result
     }
-    
-    func render(context: RenderingContext, size: ProposedSize) {
+
+    func render(context: RenderingContext, size: CGSize) {
         context.saveGState()
-        let childSize = content._size(proposed: size)
+        let childSize = content._size(proposed: ProposedSize(size))
         context.align(childSize, in: size, alignment: alignment)
         content._render(context: context, size: childSize)
         context.restoreGState()
