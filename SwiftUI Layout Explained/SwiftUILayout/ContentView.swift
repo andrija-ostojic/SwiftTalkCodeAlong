@@ -21,18 +21,19 @@ struct ContentView: View {
 
 
     var sample: some View_ {
-        Text_("Hello, world!")
-            .fixedSize()
-            .frame(
-                minWidth: minWidth.enabled ? minWidth.0.rounded() : nil,
-                maxWidth: maxWidth.enabled ? maxWidth.0.rounded() : nil
+        HStack_(children: [
+            AnyView_(
+                Rectangle_()
+                    .frame(height: 200)
+                    .foregroundColor(.red)
+            ),
+            AnyView_(
+                Rectangle_()
+                    .frame(height: 100)
+                    .foregroundColor(.blue)
             )
-//            .overlay(GeometryReader_ { size in
-//                Text_("\(Int(size.width))x\(Int(size.height))")
-//            })
-            .border(NSColor.blue, width: 2)
+        ])
             .frame(width: width.rounded(), height: 300)
-            .border(NSColor.yellow, width: 2)
     }
 
     @State var opacity: Double = 0.5

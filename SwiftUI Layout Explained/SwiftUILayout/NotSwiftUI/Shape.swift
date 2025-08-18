@@ -22,7 +22,7 @@ extension Shape_ {
 
 extension NSColor: View_ {
     var body: some View_ {
-        ShapeView(shape: Rectangle_(), color: self)
+        ShapeView(shape: Rectangle_()).foregroundColor(self)
     }
 
     var swiftUI: some View {
@@ -43,15 +43,13 @@ struct AnyShape: Shape {
 
 struct ShapeView<S: Shape_>: BuiltinView, View_ {
     var shape: S
-    var color: NSColor =  .red
 
     func size(proposed: ProposedSize) -> CGSize {
-        return proposed.orDefault
+        proposed.orDefault
     }
 
     func render(context: RenderingContext, size: CGSize) {
         context.saveGState()
-        context.setFillColor(color.cgColor)
         context.addPath(shape.path(in: CGRect(origin: .zero, size: size)))
         context.fillPath()
         context.restoreGState()
@@ -71,5 +69,31 @@ struct Rectangle_: Shape_ {
 struct Ellipse_: Shape_ {
     func path(in rect: CGRect) -> CGPath {
         CGPath(ellipseIn: rect, transform: nil)
+    }
+}
+
+extension View_ {
+    func foregroundColor(_ color: NSColor) -> some View_ {
+        ForegroundColor(content: self, color: color)
+    }
+}
+
+struct ForegroundColor<Content: View_>: View_, BuiltinView {
+    var content: Content
+    var color: NSColor
+
+    func render(context: RenderingContext, size: CGSize) {
+        context.saveGState()
+        context.setFillColor(color.cgColor)
+        content._render(context: context, size: size)
+        context.restoreGState()
+    }
+
+    func size(proposed: ProposedSize) -> CGSize {
+        content._size(proposed: proposed)
+    }
+
+    var swiftUI: some View {
+        content.swiftUI.foregroundColor(Color(color))
     }
 }
