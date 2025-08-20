@@ -16,24 +16,34 @@ func render<V: View_>(view: V, size: CGSize) -> Data {
     }
 }
 
+extension View_ {
+
+    var measured: some View_ {
+        overlay(GeometryReader_ { size in
+            Text_("\(Int(size.width))")
+        })
+    }
+}
+
 struct ContentView: View {
     let size = CGSize(width: 600, height: 400)
-
 
     var sample: some View_ {
         HStack_(children: [
             AnyView_(
                 Rectangle_()
-                    .frame(height: 200)
+                    .frame(maxWidth: 100)
                     .foregroundColor(.red)
+                    .measured
             ),
             AnyView_(
                 Rectangle_()
-                    .frame(height: 100)
+                    .frame(minWidth: 150, maxWidth: 250)
                     .foregroundColor(.blue)
+                    .measured
             )
-        ])
-            .frame(width: width.rounded(), height: 300)
+        ], alignment: .top)
+            .frame(width: width.rounded(), height: 100)
     }
 
     @State var opacity: Double = 0.5

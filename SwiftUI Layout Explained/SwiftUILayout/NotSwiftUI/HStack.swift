@@ -7,18 +7,29 @@
 
 import SwiftUI
 
+@propertyWrapper
+final class LayoutState<A> {
+    var wrappedValue: A
+
+    init(wrappedValue: A) {
+        self.wrappedValue = wrappedValue
+    }
+}
+
 struct HStack_: View_, BuiltinView {
     let children: [AnyView_]
     var spacing: CGFloat? = 0
     var alignment: VerticalAlignment_ = .center
+    @LayoutState var sizes: [CGSize] = []
 
     func render(context: RenderingContext, size: CGSize) {
-        let sizes = layout(proposed: ProposedSize(size))
+        let stackY = alignment.alignmentID.defaultValue(in: size)
         var currentX: CGFloat = 0
         for idx in children.indices {
             let childSize = sizes[idx]
+            let childY = alignment.alignmentID.defaultValue(in: childSize)
             context.saveGState()
-            context.translateBy(x: currentX, y: 0)
+            context.translateBy(x: currentX, y: stackY - childY)
             children[idx].render(context: context, size: childSize)
             context.restoreGState()
             currentX += childSize.width
@@ -26,25 +37,34 @@ struct HStack_: View_, BuiltinView {
     }
 
     func size(proposed: ProposedSize) -> CGSize {
-        let sizes = layout(proposed: proposed)
+        layout(proposed: proposed)
         let width = sizes.reduce(.zero) { $0 + $1.width }
         let height = sizes.reduce(.zero) { max($0, $1.height) }
         return CGSize(width: width, height: height)
     }
 
-    func layout(proposed: ProposedSize) -> [CGSize] {
+    func layout(proposed: ProposedSize) {
+        let flexibility: [CGFloat] = children.map { child in
+            let lower = child.size(proposed: ProposedSize(width: 0, height: proposed.height)).width
+            let upper = child.size(proposed: ProposedSize(width: .greatestFiniteMagnitude, height: proposed.height)).width
+            return upper - lower
+        }
+        var remainingIndices = children.indices.sorted { l, r in
+            flexibility[l] < flexibility[r]
+        }
         var remainingWidth = proposed.width! // TODO:
-        var remaining = children
-        var sizes: [CGSize] = []
-        while !remaining.isEmpty {
-            let width = remainingWidth / CGFloat(remaining.count)
-            let child = remaining.removeFirst()
+        var sizes: [CGSize] = Array(repeating: .zero, count: children.count)
+        while !remainingIndices.isEmpty {
+            let width = remainingWidth / CGFloat(remainingIndices.count)
+            let idx = remainingIndices.removeFirst()
+            let child = children[idx]
             let size = child.size(proposed: ProposedSize(width: width, height: proposed.height))
-            sizes.append(size)
+            sizes[idx] = size
             remainingWidth -= size.width
+            if remainingWidth < 0 { remainingWidth = 0 }
             // TODO: Check what happens if remaining width is negative
         }
-        return sizes
+        self.sizes = sizes
     }
 
     var swiftUI: some View {
