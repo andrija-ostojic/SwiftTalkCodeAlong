@@ -29,21 +29,13 @@ struct ContentView: View {
     let size = CGSize(width: 600, height: 400)
 
     var sample: some View_ {
-        HStack_(children: [
-            AnyView_(
-                Rectangle_()
-                    .frame(maxWidth: 100)
-                    .foregroundColor(.red)
-                    .measured
-            ),
-            AnyView_(
-                Rectangle_()
-                    .frame(minWidth: 150, maxWidth: 250)
-                    .foregroundColor(.blue)
-                    .measured
-            )
-        ], alignment: .top)
-            .frame(width: width.rounded(), height: 100)
+        Rectangle_()
+            .foregroundColor(.gray)
+            .frame(width: 200, height: 200, alignment: .center)
+            .alignmentGuide(for: .center) { size in
+                size.width
+            }
+            .frame(width: width.rounded(), height: 300, alignment: .leading)
     }
 
     @State var opacity: Double = 0.5

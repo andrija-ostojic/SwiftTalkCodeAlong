@@ -7,25 +7,12 @@
 
 import SwiftUI
 
-struct Border<Content: View_>: View_, BuiltinView {
-    var color: NSColor
+struct BorderShape: Shape_ {
     var width: CGFloat
-    var content: Content
 
-    func size(proposed: ProposedSize) -> CGSize {
-        content._size(proposed: proposed)
-    }
-
-    func render(context: RenderingContext, size: CGSize) {
-        content._render(context: context, size: size)
-        context.saveGState()
-        context.setStrokeColor(color.cgColor)
-        context.stroke(CGRect(origin: .zero, size: size).insetBy(dx: width/2, dy: width/2), width: width)
-        context.restoreGState()
-    }
-
-    var swiftUI: some View {
-        content.swiftUI.border(Color(color), width: width)
+    func path(in rect: CGRect) -> CGPath {
+        return CGPath(rect: rect.insetBy(dx: width / 2, dy: width / 2), transform: nil)
+            .copy(strokingWithWidth: width, lineCap: .butt, lineJoin: .miter, miterLimit: 10)
     }
 }
 
@@ -38,13 +25,18 @@ struct Overlay<Content: View_, O: View_>: View_, BuiltinView {
         content._render(context: context, size: size)
         let childSize = overlay._size(proposed: ProposedSize(size))
         context.saveGState()
-        context.align(childSize, in: size, alignment: alignment)
+        let t = content.translation(for: overlay, in: size, siblingSize: childSize, alignment: alignment)
+        context.translateBy(x: t.x, y: t.y)
         overlay._render(context: context, size: childSize)
         context.restoreGState()
     }
 
     func size(proposed: ProposedSize) -> CGSize {
         content._size(proposed: proposed)
+    }
+
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        content._customAlignment(for: alignment, in: size)
     }
 
     var swiftUI: some View {
@@ -54,7 +46,7 @@ struct Overlay<Content: View_, O: View_>: View_, BuiltinView {
 
 extension View_ {
     func border(_ color: NSColor, width: CGFloat) -> some View_ {
-        Border(color: color, width: width, content: self)
+        self.overlay(BorderShape(width: width).foregroundColor(color))
     }
 
     func overlay<O: View_>(_  overlay: O, alignment: Alignment_ = .center) -> some View_  {
@@ -69,13 +61,17 @@ struct GeometryReader_<Content: View_>: View_, BuiltinView {
         let child = content(size)
         let childSize = child._size(proposed: ProposedSize(size))
         context.saveGState()
-        context.align(childSize, in: size, alignment: .topLeading)
+        fatalError()
         child._render(context: context, size: childSize)
         context.restoreGState()
     }
 
     func size(proposed: ProposedSize) -> CGSize {
         return proposed.orDefault
+    }
+
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        return nil
     }
 
     var swiftUI: some View {
@@ -103,6 +99,10 @@ struct FixedSize<Content: View_>: View_, BuiltinView {
             p.height = nil
         }
         return content._size(proposed: p)
+    }
+
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        content._customAlignment(for: alignment, in: size)
     }
 
     var swiftUI: some View {

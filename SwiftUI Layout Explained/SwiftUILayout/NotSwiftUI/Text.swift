@@ -35,6 +35,10 @@ struct Text_: View_, BuiltinView {
         context.restoreGState()
     }
 
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        return nil
+    }
+
     func size(proposed: ProposedSize) -> CGSize {
         CTFramesetterSuggestFrameSizeWithConstraints(frameSetter, CFRange(), nil, proposed.orMax, nil)
     }

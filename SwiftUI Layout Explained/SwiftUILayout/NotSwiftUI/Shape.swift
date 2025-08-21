@@ -55,6 +55,10 @@ struct ShapeView<S: Shape_>: BuiltinView, View_ {
         context.restoreGState()
     }
 
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        return nil
+    }
+
     var swiftUI: some View {
         AnyShape(shape: shape)
     }
@@ -91,6 +95,10 @@ struct ForegroundColor<Content: View_>: View_, BuiltinView {
 
     func size(proposed: ProposedSize) -> CGSize {
         content._size(proposed: proposed)
+    }
+
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        content._customAlignment(for: alignment, in: size)
     }
 
     var swiftUI: some View {

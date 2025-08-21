@@ -43,6 +43,10 @@ struct HStack_: View_, BuiltinView {
         return CGSize(width: width, height: height)
     }
 
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        fatalError()
+    }
+
     func layout(proposed: ProposedSize) {
         let flexibility: [CGFloat] = children.map { child in
             let lower = child.size(proposed: ProposedSize(width: 0, height: proposed.height)).width
@@ -94,6 +98,10 @@ struct AnyView_: View_, BuiltinView {
     func size(proposed: ProposedSize) -> CGSize {
         impl.size(proposed: proposed)
     }
+
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        impl.customAlignment(for: alignment, in: size)
+    }
 }
 
 class AnyViewBase: BuiltinView {
@@ -101,6 +109,9 @@ class AnyViewBase: BuiltinView {
         fatalError()
     }
     func size(proposed: ProposedSize) -> CGSize {
+        fatalError()
+    }
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
         fatalError()
     }
 }
@@ -119,5 +130,9 @@ final class AnyViewImp<V: View_>: AnyViewBase {
 
     override func size(proposed: ProposedSize) -> CGSize {
         view._size(proposed: proposed)
+    }
+
+    override func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        view._customAlignment(for: alignment, in: size)
     }
 }

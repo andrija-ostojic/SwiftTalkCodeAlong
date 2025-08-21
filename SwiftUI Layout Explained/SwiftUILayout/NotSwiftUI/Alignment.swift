@@ -75,3 +75,36 @@ extension Alignment_ {
         return CGPoint(x: x, y: y)
     }
 }
+
+struct CustomHAlignmentGuide<Content: View_>: View_, BuiltinView {
+    var content: Content
+    var alignment: HorizontalAlignment_
+    var computeValue: (CGSize) -> CGFloat
+
+    func render(context: RenderingContext, size: CGSize) {
+        content._render(context: context, size: size)
+    }
+
+    func size(proposed: ProposedSize) -> CGSize {
+        content._size(proposed: proposed)
+    }
+
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        if alignment.alignmentID == self.alignment.alignmentID {
+            return computeValue(size)
+        }
+        return content._customAlignment(for: alignment, in: size)
+    }
+
+    var swiftUI: some View {
+        content.swiftUI.alignmentGuide(alignment.swiftUI, computeValue: {
+            computeValue(CGSize(width: $0.width, height: $0.height))
+        })
+    }
+}
+
+extension View_ {
+    func alignmentGuide(for alignment: HorizontalAlignment_, computeValue: @escaping (CGSize) -> CGFloat) -> some View_ {
+        CustomHAlignmentGuide(content: self, alignment: alignment, computeValue: computeValue)
+    }
+}
