@@ -61,7 +61,10 @@ struct GeometryReader_<Content: View_>: View_, BuiltinView {
         let child = content(size)
         let childSize = child._size(proposed: ProposedSize(size))
         context.saveGState()
-        fatalError()
+        let alignment = Alignment_.topLeading
+        let parentPoint = alignment.point(for: size)
+        var childPoint = alignment.point(for: childSize)
+        context.translateBy(x: parentPoint.x - childPoint.x, y: parentPoint.y - childPoint.y)
         child._render(context: context, size: childSize)
         context.restoreGState()
     }

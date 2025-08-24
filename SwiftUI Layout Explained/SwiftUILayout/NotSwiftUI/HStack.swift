@@ -16,6 +16,15 @@ final class LayoutState<A> {
     }
 }
 
+extension Array where Element == CGFloat {
+
+    func average() -> CGFloat? {
+        guard !isEmpty else { return nil }
+        let factor = 1 / CGFloat(count)
+        return map { $0 * factor }.reduce(0, +)
+    }
+}
+
 struct HStack_: View_, BuiltinView {
     let children: [AnyView_]
     var spacing: CGFloat? = 0
@@ -44,7 +53,18 @@ struct HStack_: View_, BuiltinView {
     }
 
     func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
-        fatalError()
+        if alignment.builtin { return nil }
+        var currentX: CGFloat = 0
+        var values: [CGFloat] = []
+        for idx in children.indices {
+            let childSize = sizes[idx]
+            let child = children[idx]
+            if let value = child.customAlignment(for: alignment, in: childSize) {
+                values.append(value + currentX)
+            }
+            currentX += childSize.width
+        }
+        return values.average() ?? nil
     }
 
     func layout(proposed: ProposedSize) {

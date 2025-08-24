@@ -27,17 +27,33 @@ struct Alignment_ {
 struct HorizontalAlignment_ {
     var  alignmentID:  AlignmentID.Type
     var swiftUI: HorizontalAlignment
-    static let leading = Self(alignmentID: HLeading.self, swiftUI: .leading)
-    static let center = Self(alignmentID: HCenter.self, swiftUI: .center)
-    static let trailing = Self(alignmentID: HTrailing.self, swiftUI: .trailing)
+    var builtin: Bool
+    static let leading = Self(alignmentID: HLeading.self, swiftUI: .leading, builtin: true)
+    static let center = Self(alignmentID: HCenter.self, swiftUI: .center, builtin: true)
+    static let trailing = Self(alignmentID: HTrailing.self, swiftUI: .trailing, builtin: true)
+}
+
+extension HorizontalAlignment_ {
+
+    init(alignmentID: AlignmentID.Type, swiftUI: HorizontalAlignment) {
+        self.init(alignmentID: alignmentID, swiftUI: swiftUI, builtin: false)
+    }
 }
 
 struct VerticalAlignment_ {
     var  alignmentID:  AlignmentID.Type
     var swiftUI: VerticalAlignment
-    static let top = Self(alignmentID: VTop.self, swiftUI: .top)
-    static let center = Self(alignmentID: VCenter.self, swiftUI: .center)
-    static let bottom = Self(alignmentID: VBottom.self, swiftUI: .bottom)
+    var builtin: Bool
+    static let top = Self(alignmentID: VTop.self, swiftUI: .top, builtin: true)
+    static let center = Self(alignmentID: VCenter.self, swiftUI: .center, builtin: true)
+    static let bottom = Self(alignmentID: VBottom.self, swiftUI: .bottom, builtin: true)
+}
+
+extension VerticalAlignment_ {
+
+    init(alignmentID: AlignmentID.Type, swiftUI: VerticalAlignment) {
+        self.init(alignmentID: alignmentID, swiftUI: swiftUI, builtin: false)
+    }
 }
 
 protocol AlignmentID {

@@ -25,17 +25,50 @@ extension View_ {
     }
 }
 
+enum MyLeading: AlignmentID, SwiftUI.AlignmentID {
+    static func defaultValue(in context: ViewDimensions) -> CGFloat {
+        0
+    }
+
+    static func defaultValue(in context: CGSize) -> CGFloat {
+        0
+    }
+}
+extension HorizontalAlignment_ {
+    static let myLeading = HorizontalAlignment_(alignmentID: MyLeading.self, swiftUI: HorizontalAlignment(MyLeading.self))
+}
+
 struct ContentView: View {
     let size = CGSize(width: 600, height: 400)
 
     var sample: some View_ {
-        Rectangle_()
-            .foregroundColor(.gray)
-            .frame(width: 200, height: 200, alignment: .center)
-            .alignmentGuide(for: .center) { size in
-                size.width
-            }
-            .frame(width: width.rounded(), height: 300, alignment: .leading)
+        HStack_(children: [
+            AnyView_(
+                Rectangle_()
+                    .foregroundColor(.red)
+                    .frame(width: 150, height: 50)
+                    .alignmentGuide(for: .myLeading, computeValue: { size in
+                        size.width / 2
+                    })
+                )
+            ,
+            AnyView_(
+                Rectangle_()
+                    .foregroundColor(.green)
+                    .frame(width: 100)
+                    .alignmentGuide(for: .myLeading, computeValue: { size in
+                        size.width / 2
+                    })
+                )
+//            ,
+//            AnyView_(
+//                Rectangle_()
+//                    .foregroundColor(.blue)
+//                    .frame(width: 100)
+//                )
+        ])
+        .frame(width: 400, height: 200, alignment: Alignment_(horizontal: .myLeading, vertical: .center))
+        .border(.white, width: 1)
     }
 
     @State var opacity: Double = 0.5
@@ -55,16 +88,6 @@ struct ContentView: View {
             HStack  {
                 Text("Width \(width.rounded())")
                 Slider(value: $width, in: 0...600)
-            }
-            HStack  {
-                Text("Min Width \(minWidth.0.rounded())")
-                Slider(value: $minWidth.0, in: 0...600)
-                Toggle("", isOn: $minWidth.enabled)
-            }
-            HStack  {
-                Text("Max Width \(maxWidth.0.rounded())")
-                Slider(value: $maxWidth.0, in: 0...600)
-                Toggle("", isOn: $maxWidth.enabled)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
