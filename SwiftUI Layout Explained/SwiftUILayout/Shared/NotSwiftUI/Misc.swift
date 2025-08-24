@@ -7,11 +7,32 @@
 
 import SwiftUI
 
+#if os(macOS)
+typealias Color_ = NSColor
+typealias Font_ = NSFont
+typealias Image_ = NSImage
+#elseif os(iOS)
+typealias Color_ = UIColor
+typealias Font_ = UIFont
+typealias Image_ = UIImage
+#endif
+
+extension Image {
+    init(native: Image_) {
+        #if os(macOS)
+        self.init(nsImage: native)
+        #elseif os(iOS)
+        self.init(uiImage: native)
+        #endif
+    }
+}
+
+
 struct BorderShape: Shape_ {
     var width: CGFloat
 
     func path(in rect: CGRect) -> CGPath {
-        return CGPath(rect: rect.insetBy(dx: width / 2, dy: width / 2), transform: nil)
+        CGPath(rect: rect.insetBy(dx: width/2, dy: width/2), transform: nil)
             .copy(strokingWithWidth: width, lineCap: .butt, lineJoin: .miter, miterLimit: 10)
     }
 }
@@ -20,6 +41,14 @@ struct Overlay<Content: View_, O: View_>: View_, BuiltinView {
     let content: Content
     let overlay: O
     let alignment: Alignment_
+    
+    var layoutPriority: Double {
+        content._layoutPriority
+    }
+
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        content._customAlignment(for: alignment, in: size)
+    }
 
     func render(context: RenderingContext, size: CGSize) {
         content._render(context: context, size: size)
@@ -30,27 +59,21 @@ struct Overlay<Content: View_, O: View_>: View_, BuiltinView {
         overlay._render(context: context, size: childSize)
         context.restoreGState()
     }
-
+    
     func size(proposed: ProposedSize) -> CGSize {
         content._size(proposed: proposed)
     }
-
-    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
-        content._customAlignment(for: alignment, in: size)
-    }
-
-    var layoutPriority: Double { content._layoutPriority }
-
+    
     var swiftUI: some View {
         content.swiftUI.overlay(overlay.swiftUI, alignment: alignment.swiftUI)
     }
 }
 
 extension View_ {
-    func border(_ color: NSColor, width: CGFloat) -> some View_ {
-        self.overlay(BorderShape(width: width).foregroundColor(color))
+    func border(_ color: Color_, width: CGFloat = 1) -> some View_ {
+        overlay(BorderShape(width: width).foregroundColor(color))
     }
-
+    
     func overlay<O: View_>(_  overlay: O, alignment: Alignment_ = .center) -> some View_  {
         Overlay(content: self, overlay: overlay, alignment: alignment)
     }
@@ -59,28 +82,32 @@ extension View_ {
 struct GeometryReader_<Content: View_>: View_, BuiltinView {
     let content: (CGSize) -> Content
 
-    func render(context: RenderingContext, size: CGSize) {
-        let child = content(size)
-        let childSize = child._size(proposed: ProposedSize(size))
-        context.saveGState()
-        let alignment = Alignment_.topLeading
-        let parentPoint = alignment.point(for: size)
-        var childPoint = alignment.point(for: childSize)
-        context.translateBy(x: parentPoint.x - childPoint.x, y: parentPoint.y - childPoint.y)
-        child._render(context: context, size: childSize)
-        context.restoreGState()
-    }
-
-    func size(proposed: ProposedSize) -> CGSize {
-        return proposed.orDefault
-    }
-
+    var layoutPriority: Double { 0 }
+    
     func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
         return nil
     }
 
-    var layoutPriority: Double { 0 }
-
+    func render(context: RenderingContext, size: CGSize) {
+        let child = content(size)
+        let childSize = child._size(proposed: ProposedSize(size))
+        context.saveGState()
+        #if os(iOS)
+        let alignment = Alignment_.topLeading
+        #else
+        let alignment = Alignment_.center
+        #endif
+        let parentPoint = alignment.point(for: size)
+        let childPoint = alignment.point(for: childSize)
+        context.translateBy(x: parentPoint.x-childPoint.x, y: parentPoint.y-childPoint.y)
+        child._render(context: context, size: childSize)
+        context.restoreGState()
+    }
+    
+    func size(proposed: ProposedSize) -> CGSize {
+        return proposed.orDefault
+    }
+    
     var swiftUI: some View {
         GeometryReader { proxy in
             content(proxy.size).swiftUI
@@ -92,63 +119,68 @@ struct FixedSize<Content: View_>: View_, BuiltinView {
     var content: Content
     var horizontal: Bool
     var vertical: Bool
-
-    func render(context: RenderingContext, size: CGSize) {
-        content._render(context: context, size: size)
-    }
-
-    func size(proposed: ProposedSize) -> CGSize {
-        var p = proposed
-        if horizontal {
-            p.width = nil
-        }
-        if vertical {
-            p.height = nil
-        }
-        return content._size(proposed: p)
+    
+    var layoutPriority: Double {
+        content._layoutPriority
     }
 
     func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
         content._customAlignment(for: alignment, in: size)
     }
 
-    var layoutPriority: Double { content._layoutPriority }
-
+    func render(context: RenderingContext, size: CGSize) {
+        content._render(context: context, size: size)
+    }
+    
+    func size(proposed p: ProposedSize) -> CGSize {
+        var proposed = p
+        if horizontal { proposed.width = nil }
+        if vertical { proposed.height = nil }
+        return content._size(proposed: proposed)
+    }
+    
     var swiftUI: some View {
         content.swiftUI.fixedSize(horizontal: horizontal, vertical: vertical)
     }
 }
 
 extension View_ {
-    func fixedSize(horizontal: Bool = true, vertical: Bool = true) -> some View_ {
+    func fixedSize(horizontal: Bool  = true, vertical: Bool  = true) -> some View_ {
         FixedSize(content: self, horizontal: horizontal, vertical: vertical)
     }
 }
 
-struct LayoutPriorityView<Content: View_>: View_, BuiltinView {
+struct LayoutPriority<Content: View_>: View_, BuiltinView {
     var content: Content
     var layoutPriority: Double
-
-    func render(context: RenderingContext, size: CGSize) {
-        content._render(context: context, size: size)
-    }
-
-    func size(proposed: ProposedSize) -> CGSize {
-        content._size(proposed: proposed)
-    }
-
+    
     func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
         content._customAlignment(for: alignment, in: size)
     }
-
+    
+    func render(context: RenderingContext, size: CGSize) {
+        content._render(context: context, size: size)
+    }
+    
+    func size(proposed: ProposedSize) -> CGSize {
+        content._size(proposed: proposed)
+    }
+    
     var swiftUI: some View {
         content.swiftUI.layoutPriority(layoutPriority)
     }
 }
 
 extension View_ {
-
     func layoutPriority(_ value: Double) -> some View_ {
-        LayoutPriorityView(content: self, layoutPriority: value)
+        LayoutPriority(content: self, layoutPriority: value)
+    }
+}
+
+@propertyWrapper
+final class LayoutState<A> {
+    var wrappedValue: A
+    init(wrappedValue: A) {
+        self.wrappedValue = wrappedValue
     }
 }

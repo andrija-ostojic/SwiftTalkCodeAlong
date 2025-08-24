@@ -2,7 +2,7 @@
 //  Shape.swift
 //  SwiftUILayout
 //
-//  Created by Andrija Ostojic on 16. 8. 2025..
+//  Created by Florian Kugler on 26-10-2020.
 //
 
 import SwiftUI
@@ -20,11 +20,11 @@ extension Shape_ {
     }
 }
 
-extension NSColor: View_ {
+extension Color_: View_ {
     var body: some View_ {
         ShapeView(shape: Rectangle_()).foregroundColor(self)
     }
-
+    
     var swiftUI: some View {
         Color(self)
     }
@@ -35,7 +35,7 @@ struct AnyShape: Shape {
     init<S: Shape_>(shape: S) {
         _path = shape.path(in:)
     }
-
+    
     func path(in rect: CGRect) -> Path {
         Path(_path(rect))
     }
@@ -44,23 +44,23 @@ struct AnyShape: Shape {
 struct ShapeView<S: Shape_>: BuiltinView, View_ {
     var shape: S
 
+    var layoutPriority: Double { 0 }
+
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        return nil
+    }
+
     func size(proposed: ProposedSize) -> CGSize {
         proposed.orDefault
     }
-
+    
     func render(context: RenderingContext, size: CGSize) {
         context.saveGState()
         context.addPath(shape.path(in: CGRect(origin: .zero, size: size)))
         context.fillPath()
         context.restoreGState()
     }
-
-    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
-        return nil
-    }
-
-    var layoutPriority: Double { 0 }
-
+    
     var swiftUI: some View {
         AnyShape(shape: shape)
     }
@@ -79,14 +79,22 @@ struct Ellipse_: Shape_ {
 }
 
 extension View_ {
-    func foregroundColor(_ color: NSColor) -> some View_ {
+    func foregroundColor(_ color: Color_) -> some View_ {
         ForegroundColor(content: self, color: color)
     }
 }
 
 struct ForegroundColor<Content: View_>: View_, BuiltinView {
     var content: Content
-    var color: NSColor
+    var color: Color_
+
+    var layoutPriority: Double {
+        content._layoutPriority
+    }
+
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        content._customAlignment(for: alignment, in: size)
+    }
 
     func render(context: RenderingContext, size: CGSize) {
         context.saveGState()
@@ -94,17 +102,11 @@ struct ForegroundColor<Content: View_>: View_, BuiltinView {
         content._render(context: context, size: size)
         context.restoreGState()
     }
-
+    
     func size(proposed: ProposedSize) -> CGSize {
         content._size(proposed: proposed)
     }
-
-    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
-        content._customAlignment(for: alignment, in: size)
-    }
-
-    var layoutPriority: Double { content._layoutPriority }
-
+    
     var swiftUI: some View {
         content.swiftUI.foregroundColor(Color(color))
     }

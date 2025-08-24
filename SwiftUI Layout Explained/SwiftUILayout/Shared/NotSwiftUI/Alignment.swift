@@ -25,7 +25,7 @@ struct Alignment_ {
 }
 
 struct HorizontalAlignment_ {
-    var  alignmentID:  AlignmentID.Type
+    var alignmentID:  AlignmentID.Type
     var swiftUI: HorizontalAlignment
     var builtin: Bool
     static let leading = Self(alignmentID: HLeading.self, swiftUI: .leading, builtin: true)
@@ -34,14 +34,19 @@ struct HorizontalAlignment_ {
 }
 
 extension HorizontalAlignment_ {
-
     init(alignmentID: AlignmentID.Type, swiftUI: HorizontalAlignment) {
         self.init(alignmentID: alignmentID, swiftUI: swiftUI, builtin: false)
     }
 }
 
+extension VerticalAlignment_ {
+    init(alignmentID: AlignmentID.Type, swiftUI: VerticalAlignment) {
+        self.init(alignmentID: alignmentID, swiftUI: swiftUI, builtin: false)
+    }
+}
+
 struct VerticalAlignment_ {
-    var  alignmentID:  AlignmentID.Type
+    var alignmentID:  AlignmentID.Type
     var swiftUI: VerticalAlignment
     var builtin: Bool
     static let top = Self(alignmentID: VTop.self, swiftUI: .top, builtin: true)
@@ -49,19 +54,18 @@ struct VerticalAlignment_ {
     static let bottom = Self(alignmentID: VBottom.self, swiftUI: .bottom, builtin: true)
 }
 
-extension VerticalAlignment_ {
-
-    init(alignmentID: AlignmentID.Type, swiftUI: VerticalAlignment) {
-        self.init(alignmentID: alignmentID, swiftUI: swiftUI, builtin: false)
-    }
-}
-
 protocol AlignmentID {
     static func defaultValue(in context: CGSize) -> CGFloat
 }
 
 enum VTop: AlignmentID {
-    static func defaultValue(in context: CGSize) -> CGFloat { context.height }
+    static func defaultValue(in context: CGSize) -> CGFloat {
+        #if os(iOS)
+        return 0
+        #else
+        return context.height
+        #endif
+    }
 }
 
 enum VCenter: AlignmentID {
@@ -69,7 +73,13 @@ enum VCenter: AlignmentID {
 }
 
 enum VBottom: AlignmentID {
-    static func defaultValue(in context: CGSize) -> CGFloat { 0 }
+    static func defaultValue(in context: CGSize) -> CGFloat {
+        #if os(iOS)
+        return context.height
+        #else
+        return 0
+        #endif
+    }
 }
 
 enum HLeading: AlignmentID {
@@ -96,24 +106,23 @@ struct CustomHAlignmentGuide<Content: View_>: View_, BuiltinView {
     var content: Content
     var alignment: HorizontalAlignment_
     var computeValue: (CGSize) -> CGFloat
+    
+    var layoutPriority: Double {
+        content._layoutPriority
+    }
 
     func render(context: RenderingContext, size: CGSize) {
         content._render(context: context, size: size)
     }
-
     func size(proposed: ProposedSize) -> CGSize {
         content._size(proposed: proposed)
     }
-
     func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
         if alignment.alignmentID == self.alignment.alignmentID {
             return computeValue(size)
         }
         return content._customAlignment(for: alignment, in: size)
     }
-
-    var layoutPriority: Double { content._layoutPriority }
-
     var swiftUI: some View {
         content.swiftUI.alignmentGuide(alignment.swiftUI, computeValue: {
             computeValue(CGSize(width: $0.width, height: $0.height))
