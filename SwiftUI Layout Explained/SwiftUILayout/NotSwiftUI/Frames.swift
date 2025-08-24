@@ -35,6 +35,8 @@ struct FixedFrame<Content: View_>: View_, BuiltinView {
         return nil
     }
 
+    var layoutPriority: Double { content._layoutPriority }
+
     var swiftUI: some View {
         content.swiftUI.frame(width: width, height: height, alignment: alignment.swiftUI)
     }
@@ -97,6 +99,8 @@ struct FlexibleFrame<Content: View_>: View_, BuiltinView {
         }
         return nil
     }
+
+    var layoutPriority: Double { content._layoutPriority }
 
     var swiftUI: some View {
         content.swiftUI.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight, alignment: alignment.swiftUI)

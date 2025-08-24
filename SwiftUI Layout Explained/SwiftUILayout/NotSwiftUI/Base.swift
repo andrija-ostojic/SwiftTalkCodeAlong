@@ -42,6 +42,7 @@ protocol BuiltinView {
     func render(context: RenderingContext, size: CGSize)
     func size(proposed: ProposedSize) -> CGSize
     func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat?
+    var layoutPriority: Double { get }
     typealias Body = Never
 }
 
@@ -76,6 +77,14 @@ extension View_ {
             return builtin.customAlignment(for: alignment, in: size)
         } else {
             return body._customAlignment(for: alignment, in: size)
+        }
+    }
+
+    var _layoutPriority: Double {
+        if let builtin = self as? BuiltinView {
+            return builtin.layoutPriority
+        } else {
+            return body._layoutPriority
         }
     }
 }

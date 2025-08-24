@@ -39,6 +39,8 @@ struct Overlay<Content: View_, O: View_>: View_, BuiltinView {
         content._customAlignment(for: alignment, in: size)
     }
 
+    var layoutPriority: Double { content._layoutPriority }
+
     var swiftUI: some View {
         content.swiftUI.overlay(overlay.swiftUI, alignment: alignment.swiftUI)
     }
@@ -77,6 +79,8 @@ struct GeometryReader_<Content: View_>: View_, BuiltinView {
         return nil
     }
 
+    var layoutPriority: Double { 0 }
+
     var swiftUI: some View {
         GeometryReader { proxy in
             content(proxy.size).swiftUI
@@ -108,6 +112,8 @@ struct FixedSize<Content: View_>: View_, BuiltinView {
         content._customAlignment(for: alignment, in: size)
     }
 
+    var layoutPriority: Double { content._layoutPriority }
+
     var swiftUI: some View {
         content.swiftUI.fixedSize(horizontal: horizontal, vertical: vertical)
     }
@@ -116,5 +122,33 @@ struct FixedSize<Content: View_>: View_, BuiltinView {
 extension View_ {
     func fixedSize(horizontal: Bool = true, vertical: Bool = true) -> some View_ {
         FixedSize(content: self, horizontal: horizontal, vertical: vertical)
+    }
+}
+
+struct LayoutPriorityView<Content: View_>: View_, BuiltinView {
+    var content: Content
+    var layoutPriority: Double
+
+    func render(context: RenderingContext, size: CGSize) {
+        content._render(context: context, size: size)
+    }
+
+    func size(proposed: ProposedSize) -> CGSize {
+        content._size(proposed: proposed)
+    }
+
+    func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
+        content._customAlignment(for: alignment, in: size)
+    }
+
+    var swiftUI: some View {
+        content.swiftUI.layoutPriority(layoutPriority)
+    }
+}
+
+extension View_ {
+
+    func layoutPriority(_ value: Double) -> some View_ {
+        LayoutPriorityView(content: self, layoutPriority: value)
     }
 }

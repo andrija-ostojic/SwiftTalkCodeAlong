@@ -43,5 +43,7 @@ struct Text_: View_, BuiltinView {
         CTFramesetterSuggestFrameSizeWithConstraints(frameSetter, CFRange(), nil, proposed.orMax, nil)
     }
 
+    var layoutPriority: Double { 0 }
+
     var swiftUI: some View { Text(text).font(Font(font)) }
 }

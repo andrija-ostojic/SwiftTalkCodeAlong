@@ -46,26 +46,35 @@ struct ContentView: View {
             AnyView_(
                 Rectangle_()
                     .foregroundColor(.red)
-                    .frame(width: 150, height: 50)
-                    .alignmentGuide(for: .myLeading, computeValue: { size in
-                        size.width / 2
-                    })
-                )
-            ,
+                    .frame(minWidth: 50)
+                    .measured
+            ),
             AnyView_(
                 Rectangle_()
                     .foregroundColor(.green)
-                    .frame(width: 100)
-                    .alignmentGuide(for: .myLeading, computeValue: { size in
-                        size.width / 2
-                    })
-                )
-//            ,
-//            AnyView_(
-//                Rectangle_()
-//                    .foregroundColor(.blue)
-//                    .frame(width: 100)
-//                )
+                    .frame(width: 30)
+                    .layoutPriority(2)
+                    .measured
+            ),
+            AnyView_(
+                Rectangle_()
+                    .foregroundColor(.blue)
+                    .layoutPriority(2)
+                    .measured
+            ),
+            AnyView_(
+                Rectangle_()
+                    .foregroundColor(.yellow)
+                    .frame(minWidth: 100, maxWidth: 120)
+                    .measured
+            ),
+            AnyView_(
+                Rectangle_()
+                    .foregroundColor(.orange)
+                    .frame(minWidth: 100)
+                    .layoutPriority(1)
+                    .measured
+            )
         ])
         .frame(width: 400, height: 200, alignment: Alignment_(horizontal: .myLeading, vertical: .center))
         .border(.white, width: 1)

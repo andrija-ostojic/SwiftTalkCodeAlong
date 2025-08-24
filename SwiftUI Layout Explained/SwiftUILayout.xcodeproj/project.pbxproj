@@ -12,7 +12,6 @@
 		8315923F252B154F0099D4DF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8315923E252B154F0099D4DF /* Assets.xcassets */; };
 		83159242252B154F0099D4DF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83159241252B154F0099D4DF /* Preview Assets.xcassets */; };
 		83159245252B154F0099D4DF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 83159243252B154F0099D4DF /* Main.storyboard */; };
-		8315924F252B1D120099D4DF /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8315924E252B1D120099D4DF /* Helpers.swift */; };
 		B77C82CB2E50D7CF00A38045 /* Alignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B77C82CA2E50D7CD00A38045 /* Alignment.swift */; };
 		B77C82CD2E50D7D500A38045 /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = B77C82CC2E50D7D200A38045 /* Base.swift */; };
 		B77C82CF2E50D7DE00A38045 /* Frames.swift in Sources */ = {isa = PBXBuildFile; fileRef = B77C82CE2E50D7DE00A38045 /* Frames.swift */; };
@@ -20,6 +19,7 @@
 		B77C82D32E50D7EB00A38045 /* Shape.swift in Sources */ = {isa = PBXBuildFile; fileRef = B77C82D22E50D7EB00A38045 /* Shape.swift */; };
 		B77C82D52E50D7EF00A38045 /* Text.swift in Sources */ = {isa = PBXBuildFile; fileRef = B77C82D42E50D7EF00A38045 /* Text.swift */; };
 		B77C82D72E51E27000A38045 /* HStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = B77C82D62E51E27000A38045 /* HStack.swift */; };
+		B784A1F52E5B8AF10061337A /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B784A1F42E5B8AE70061337A /* Helpers.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,7 +31,6 @@
 		83159244252B154F0099D4DF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		83159246252B154F0099D4DF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		83159247252B154F0099D4DF /* SwiftUILayout.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SwiftUILayout.entitlements; sourceTree = "<group>"; };
-		8315924E252B1D120099D4DF /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		B77C82CA2E50D7CD00A38045 /* Alignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alignment.swift; sourceTree = "<group>"; };
 		B77C82CC2E50D7D200A38045 /* Base.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base.swift; sourceTree = "<group>"; };
 		B77C82CE2E50D7DE00A38045 /* Frames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Frames.swift; sourceTree = "<group>"; };
@@ -39,6 +38,7 @@
 		B77C82D22E50D7EB00A38045 /* Shape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shape.swift; sourceTree = "<group>"; };
 		B77C82D42E50D7EF00A38045 /* Text.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Text.swift; sourceTree = "<group>"; };
 		B77C82D62E51E27000A38045 /* HStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HStack.swift; sourceTree = "<group>"; };
+		B784A1F42E5B8AE70061337A /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +71,7 @@
 		83159239252B154C0099D4DF /* SwiftUILayout */ = {
 			isa = PBXGroup;
 			children = (
+				B784A1F42E5B8AE70061337A /* Helpers.swift */,
 				B77C82C92E50D7BF00A38045 /* NotSwiftUI */,
 				8315923A252B154C0099D4DF /* AppDelegate.swift */,
 				8315923C252B154C0099D4DF /* ContentView.swift */,
@@ -79,7 +80,6 @@
 				83159246252B154F0099D4DF /* Info.plist */,
 				83159247252B154F0099D4DF /* SwiftUILayout.entitlements */,
 				83159240252B154F0099D4DF /* Preview Content */,
-				8315924E252B1D120099D4DF /* Helpers.swift */,
 			);
 			path = SwiftUILayout;
 			sourceTree = "<group>";
@@ -179,10 +179,10 @@
 				8315923D252B154C0099D4DF /* ContentView.swift in Sources */,
 				B77C82CB2E50D7CF00A38045 /* Alignment.swift in Sources */,
 				B77C82CD2E50D7D500A38045 /* Base.swift in Sources */,
-				8315924F252B1D120099D4DF /* Helpers.swift in Sources */,
 				B77C82D52E50D7EF00A38045 /* Text.swift in Sources */,
 				B77C82D12E50D7E400A38045 /* Misc.swift in Sources */,
 				8315923B252B154C0099D4DF /* AppDelegate.swift in Sources */,
+				B784A1F52E5B8AF10061337A /* Helpers.swift in Sources */,
 				B77C82D72E51E27000A38045 /* HStack.swift in Sources */,
 				B77C82CF2E50D7DE00A38045 /* Frames.swift in Sources */,
 				B77C82D32E50D7EB00A38045 /* Shape.swift in Sources */,

@@ -112,6 +112,8 @@ struct CustomHAlignmentGuide<Content: View_>: View_, BuiltinView {
         return content._customAlignment(for: alignment, in: size)
     }
 
+    var layoutPriority: Double { content._layoutPriority }
+
     var swiftUI: some View {
         content.swiftUI.alignmentGuide(alignment.swiftUI, computeValue: {
             computeValue(CGSize(width: $0.width, height: $0.height))

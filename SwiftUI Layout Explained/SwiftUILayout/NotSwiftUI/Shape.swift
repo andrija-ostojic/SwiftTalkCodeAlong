@@ -59,6 +59,8 @@ struct ShapeView<S: Shape_>: BuiltinView, View_ {
         return nil
     }
 
+    var layoutPriority: Double { 0 }
+
     var swiftUI: some View {
         AnyShape(shape: shape)
     }
@@ -100,6 +102,8 @@ struct ForegroundColor<Content: View_>: View_, BuiltinView {
     func customAlignment(for alignment: HorizontalAlignment_, in size: CGSize) -> CGFloat? {
         content._customAlignment(for: alignment, in: size)
     }
+
+    var layoutPriority: Double { content._layoutPriority }
 
     var swiftUI: some View {
         content.swiftUI.foregroundColor(Color(color))
