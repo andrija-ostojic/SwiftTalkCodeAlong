@@ -48,7 +48,7 @@ struct ContentView: View {
     
     // [SwiftUILayoutiOSTests.Frame.flexible, SwiftUILayoutiOSTests.Frame.min(74.0), SwiftUILayoutiOSTests.Frame.max(23.0)]
     var sample: some View_ {
-        HStack_(children: [
+        VGrid(columns: [100, 200], content: [
             AnyView_(
                 Rectangle_()
                     .foregroundColor(Color_.red)
@@ -57,7 +57,7 @@ struct ContentView: View {
             AnyView_(
                 Rectangle_()
                     .foregroundColor(Color_.green)
-                    .frame(minWidth: 74)
+                    .frame(minWidth: 74, minHeight: 50)
                     .measured
             ),
             AnyView_(
@@ -67,6 +67,7 @@ struct ContentView: View {
                     .measured
             ),
         ])
+        .border(.blue)
         .frame(width: width, height: 200)
         .border(Color_.white)
     }

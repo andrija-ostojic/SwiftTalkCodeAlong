@@ -37,6 +37,8 @@
 		8341FD80255AC2FA001444A0 /* SwiftUILayoutiOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8341FD7F255AC2FA001444A0 /* SwiftUILayoutiOSTests.swift */; };
 		834573F12551620900E031FD /* HStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834573F02551620900E031FD /* HStack.swift */; };
 		83AB41C22548226A0099F5A6 /* Text.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AB41C12548226A0099F5A6 /* Text.swift */; };
+		B784A22F2E5CBFA90061337A /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = B784A22E2E5CBFA70061337A /* Grid.swift */; };
+		B784A2302E5CBFA90061337A /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = B784A22E2E5CBFA70061337A /* Grid.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,6 +79,7 @@
 		8341FD81255AC2FA001444A0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		834573F02551620900E031FD /* HStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HStack.swift; sourceTree = "<group>"; };
 		83AB41C12548226A0099F5A6 /* Text.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Text.swift; sourceTree = "<group>"; };
+		B784A22E2E5CBFA70061337A /* Grid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Grid.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +110,7 @@
 		1753300A2546F4F900B3680B /* NotSwiftUI */ = {
 			isa = PBXGroup;
 			children = (
+				B784A22E2E5CBFA70061337A /* Grid.swift */,
 				834573F02551620900E031FD /* HStack.swift */,
 				83AB41C12548226A0099F5A6 /* Text.swift */,
 				175330072546F4C500B3680B /* Misc.swift */,
@@ -343,6 +347,7 @@
 				175330052546F4A700B3680B /* Base.swift in Sources */,
 				175330022546F48600B3680B /* Frames.swift in Sources */,
 				8341FD28255AA445001444A0 /* AnyView.swift in Sources */,
+				B784A2302E5CBFA90061337A /* Grid.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,6 +362,7 @@
 				8341FD4E255ABCFE001444A0 /* HStack.swift in Sources */,
 				8341FD51255ABCFE001444A0 /* Helpers.swift in Sources */,
 				8341FD54255ABCFE001444A0 /* Shape.swift in Sources */,
+				B784A22F2E5CBFA90061337A /* Grid.swift in Sources */,
 				8341FD34255ABCD2001444A0 /* SceneDelegate.swift in Sources */,
 				8341FD4A255ABCF8001444A0 /* ContentView.swift in Sources */,
 				8341FD4F255ABCFE001444A0 /* Frames.swift in Sources */,
