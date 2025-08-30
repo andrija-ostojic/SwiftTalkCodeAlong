@@ -48,7 +48,7 @@ struct ContentView: View {
     
     // [SwiftUILayoutiOSTests.Frame.flexible, SwiftUILayoutiOSTests.Frame.min(74.0), SwiftUILayoutiOSTests.Frame.max(23.0)]
     var sample: some View_ {
-        VGrid(columns: [100, 200], content: [
+        VGrid(columns: [.fixed(100), .flexible(minimum: 100, maximum: 200), .fixed(200)], content: [
             AnyView_(
                 Rectangle_()
                     .foregroundColor(Color_.red)
@@ -57,13 +57,12 @@ struct ContentView: View {
             AnyView_(
                 Rectangle_()
                     .foregroundColor(Color_.green)
-                    .frame(minWidth: 74, minHeight: 50)
+                    .frame(minHeight: 50)
                     .measured
             ),
             AnyView_(
                 Rectangle_()
                     .foregroundColor(Color_.yellow)
-                    .frame(maxWidth: 23)
                     .measured
             ),
         ])
