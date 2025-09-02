@@ -2,15 +2,6 @@
   "object": {
     "pins": [
       {
-        "package": "Down",
-        "repositoryURL": "https://github.com/johnxnguyen/Down",
-        "state": {
-          "branch": "master",
-          "revision": "e754ab1c80920dd51a8e08290c912ac1c2ac8b58",
-          "version": null
-        }
-      },
-      {
         "package": "SwiftSyntax",
         "repositoryURL": "https://github.com/apple/swift-syntax.git",
         "state": {

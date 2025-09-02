@@ -9,7 +9,7 @@ let package = Package(
         .macOS(.v10_14)
     ],
     dependencies: [
-        .package(url: "https://github.com/johnxnguyen/Down", .branch("master")),
+        .package(path: "/Users/andrija/Downloads/commonmark-swift-swift-5"),
         .package(url: "https://github.com/apple/swift-syntax.git", .exact("0.40200.0")),
     ],
     targets: [
@@ -17,7 +17,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "playground-simplified",
-            dependencies: ["Down", "SwiftSyntax"]),
+            dependencies: ["CommonMark", "Ccmark", "SwiftSyntax"]),
         .testTarget(
             name: "playground-simplifiedTests",
             dependencies: ["playground-simplified"]),
