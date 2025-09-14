@@ -115,7 +115,11 @@ extension NSApplication {
         editMenu.submenu?.addItem(NSMenuItem(title: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c"))
         editMenu.submenu?.addItem(NSMenuItem(title: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
         editMenu.submenu?.addItem(NSMenuItem(title: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
-        
+
+        let codeMenu = NSMenuItem()
+        editMenu.submenu = NSMenu(title: "Code")
+        editMenu.submenu?.addItem(NSMenuItem(title: "Execute", action: #selector(ViewController.execute), keyEquivalent: "e"))
+
         let windowMenu = NSMenuItem()
         windowMenu.submenu = NSMenu(title: "Window")
         windowMenu.submenu?.addItem(NSMenuItem(title: "Minmize", action: #selector(NSWindow.miniaturize(_:)), keyEquivalent: "m"))
@@ -128,6 +132,7 @@ extension NSApplication {
         mainMenu.addItem(fileMenu)
         mainMenu.addItem(editMenu)
         mainMenu.addItem(windowMenu)
+        mainMenu.addItem(codeMenu)
         return mainMenu
     }
 }

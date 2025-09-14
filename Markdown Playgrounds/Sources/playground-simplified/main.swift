@@ -63,14 +63,14 @@ class MarkdownDocument: NSDocument {
 final class ViewController: NSViewController {
     let editor = NSTextView()
     let output = NSTextView()
-
+    var codeBlocks: [CodeBlock] = []
     var observerToken: Any?
+    var repl: REPL!
 
     override func loadView() {
         let editorSV = editor.configureAndWrapInScrollView(isEditable: true, inset: CGSize(width: 30, height: 10))
         let outputSV = output.configureAndWrapInScrollView(isEditable: false, inset: CGSize(width: 10, height: 10))
         outputSV.widthAnchor.constraint(greaterThanOrEqualToConstant: 200).isActive = true
-        output.string = "output"
         editor.allowsUndo = true
         
         self.view = splitView([editorSV, outputSV])
@@ -78,13 +78,65 @@ final class ViewController: NSViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        repl = REPL(
+            onStdOut: { [unowned output] in
+                output.textStorage?.append(NSAttributedString(string: $0))
+            }, onStdErr: { [unowned output] in
+                output.textStorage?.append(NSAttributedString(string: $0))
+            })
         observerToken = NotificationCenter.default.addObserver(forName: NSTextView.didChangeNotification, object: editor, queue: nil, using: { [unowned self] _ in
             self.parse()
         })
     }
 
     func parse() {
-        editor.textStorage?.highlightMarkdown()
+        guard let attributedString = editor.textStorage else { return }
+        codeBlocks = attributedString.highlightMarkdown()
+    }
+
+    @objc func execute() {
+        let pos = editor.selectedRange().location
+        guard let block = codeBlocks.first(where: { $0.range.contains(pos) }) else { return }
+        repl.execute(block.text)
+    }
+}
+
+final class REPL {
+    private let process = Process()
+    private let stdIn = Pipe()
+    private let stdOut = Pipe()
+    private let stdErr = Pipe()
+
+    private var stdOutToken: Any?
+    private var stdErrToken: Any?
+
+    init(onStdOut: @escaping (String) -> (), onStdErr: @escaping (String) -> ()) {
+        process.launchPath = "/usr/bin/swift"
+        process.standardInput = stdIn.fileHandleForReading
+        process.standardOutput = stdOut.fileHandleForWriting
+        process.standardError = stdOut.fileHandleForWriting
+
+        stdOutToken = NotificationCenter.default.addObserver(forName: .NSFileHandleDataAvailable, object: stdOut.fileHandleForReading, queue: nil) { [unowned self] note in
+            let data = self.stdOut.fileHandleForReading.availableData
+            let string = String(data: data, encoding: .utf8)!
+            onStdOut(string)
+            self.stdOut.fileHandleForReading.waitForDataInBackgroundAndNotify()
+        }
+
+        stdErrToken = NotificationCenter.default.addObserver(forName: .NSFileHandleDataAvailable, object: stdOut.fileHandleForReading, queue: nil) { [unowned self] note in
+            let data = self.stdErr.fileHandleForReading.availableData
+            let string = String(data: data, encoding: .utf8)!
+            onStdErr(string)
+            self.stdErr.fileHandleForReading.waitForDataInBackgroundAndNotify()
+        }
+
+        process.launch()
+        stdOut.fileHandleForReading.waitForDataInBackgroundAndNotify()
+        stdErr.fileHandleForReading.waitForDataInBackgroundAndNotify()
+    }
+
+    func execute(_ code: String) {
+        stdIn.fileHandleForWriting.write(code.data(using: .utf8)!)
     }
 }
 
@@ -101,37 +153,13 @@ extension String {
     }
 }
 
-extension NSMutableAttributedString {
-
-    func highlightMarkdown() {
-        guard let node = Node(markdown: string) else { return }
-        let lineOffsets = string.lineOffsets
-
-        func index(of pos: Position) -> String.Index {
-            let lineStart = lineOffsets[Int(pos.line - 1)]
-            return string.index(lineStart, offsetBy: Int(pos.column - 1))
-        }
-
-        let defaultAttributes = Attributes(family: "Helvetica", size: 16)
-        setAttributes(defaultAttributes.atts, range: NSRange(location: 0, length: length))
-
-        for c in node.children {
-            let start = index(of: c.start)
-            let end = index(of: c.end)
-            let nsRange = NSRange(start...end, in: string)
-
-            switch c.type {
-            case CMARK_NODE_HEADING:
-                addAttribute(.foregroundColor, value: NSColor.red, range: nsRange)
-            case CMARK_NODE_BLOCK_QUOTE:
-                addAttribute(.foregroundColor, value: NSColor.green, range: nsRange)
-            case CMARK_NODE_CODE_BLOCK:
-                var copy = defaultAttributes
-                copy.family = "Monaco"
-                addAttribute(.font, value: copy.font, range: nsRange)
-            default:
-                break
-            }
+extension CommonMark.Node {
+    /// When visiting a node, you can modify the state, and the modified state gets passed on to all children.
+    func visitAll<State>(_ initial: State, _ callback: (Node, inout State) -> ()) {
+        for c in children {
+            var copy = initial
+            callback(c, &copy)
+            c.visitAll(copy, callback)
         }
     }
 }
