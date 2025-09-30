@@ -2,7 +2,7 @@
 //  MarkdownHighlighting.swift
 //  playground-simplified
 //
-//  Created by Andrija Ostojic on 14. 9. 2025..
+//  Created by Florian Kugler on 19-03-2019.
 //
 
 import AppKit
@@ -11,22 +11,25 @@ import Ccmark
 
 extension NSMutableAttributedString {
     var range: NSRange { return NSMakeRange(0, length) }
-
+    
     func highlightMarkdown() -> [CodeBlock] {
+        guard !string.isEmpty else { return [] }
         guard let node = Node(markdown: string) else { return [] }
-
+        
         let lineOffsets = string.lineOffsets
         var codeBlocks: [CodeBlock] = []
 
+        let lastValidIndex = string.index(before: string.endIndex)
         func index(of pos: Position) -> String.Index {
             let lineStart = lineOffsets[Int(pos.line-1)]
-            return string.index(lineStart, offsetBy: Int(pos.column-1), limitedBy: string.endIndex) ?? string.endIndex
+            return string.utf8.index(lineStart, offsetBy: Int(pos.column-1), limitedBy: lastValidIndex) ?? lastValidIndex
         }
-
+        
         let defaultAttributes = Attributes(family: "Helvetica", size: 16)
         setAttributes(defaultAttributes.atts, range: range)
-
+        
         node.visitAll(defaultAttributes) { c, attributes in
+            guard c.start.line != 0 else { return }
             let start = index(of: c.start)
             let end = index(of: c.end)
             guard start < end else { return }
@@ -76,3 +79,4 @@ struct CodeBlock {
     var text: String
     var range: NSRange
 }
+

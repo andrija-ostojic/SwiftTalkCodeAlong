@@ -1,6 +1,6 @@
 import CommonMark
-import Ccmark
 import AppKit
+import Ccmark
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(_ notification: Notification) {
@@ -60,13 +60,26 @@ class MarkdownDocument: NSDocument {
     }
 }
 
+extension String {
+    var lineOffsets: [String.Index] {
+        var result = [startIndex]
+        for i in indices {
+            let c = self[i]
+            if c == "\n" || c == "\r" || c == "\r\n" {
+                result.append(index(after: i))
+            }
+        }
+        return result
+    }
+}
+
 final class ViewController: NSViewController {
     let editor = NSTextView()
     let output = NSTextView()
-    var codeBlocks: [CodeBlock] = []
     var observerToken: Any?
+    var codeBlocks: [CodeBlock] = []
     var repl: REPL!
-
+    
     override func loadView() {
         let editorSV = editor.configureAndWrapInScrollView(isEditable: true, inset: CGSize(width: 30, height: 10))
         let outputSV = output.configureAndWrapInScrollView(isEditable: false, inset: CGSize(width: 10, height: 10))
@@ -75,38 +88,59 @@ final class ViewController: NSViewController {
         
         self.view = splitView([editorSV, outputSV])
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        repl = REPL(
-            onStdOut: { [unowned output] in
-                output.textStorage?.append(NSAttributedString(string: $0))
-            }, onStdErr: { [unowned output] in
-                output.textStorage?.append(NSAttributedString(string: $0))
-            })
-        observerToken = NotificationCenter.default.addObserver(forName: NSTextView.didChangeNotification, object: editor, queue: nil, using: { [unowned self] _ in
-            self.parse()
+        repl = REPL(onStdOut: { [unowned output] text in
+            output.textStorage?.append(NSAttributedString(string: text, attributes: [
+                .foregroundColor: NSColor.textColor
+            ]))
+        }, onStdErr: { [unowned output] text in
+            output.textStorage?.append(NSAttributedString(string: text, attributes: [
+                .foregroundColor: NSColor.red
+            ]))
         })
+        observerToken = NotificationCenter.default.addObserver(forName: NSTextView.didChangeNotification, object: editor, queue: nil) { [unowned self] _ in
+            self.parse()
+        }
+        self.parse()        
     }
-
+    
     func parse() {
         guard let attributedString = editor.textStorage else { return }
         codeBlocks = attributedString.highlightMarkdown()
     }
-
+    
     @objc func execute() {
         let pos = editor.selectedRange().location
         guard let block = codeBlocks.first(where: { $0.range.contains(pos) }) else { return }
         repl.execute(block.text)
+    }
+    
+    deinit {
+        if let t = observerToken { NotificationCenter.default.removeObserver(t) }
+    }
+}
+
+struct REPLBuffer {
+    private var buffer = Data()
+    
+    mutating func append(_ data: Data) -> String? {
+        buffer.append(data)
+        if let string = String(data: buffer, encoding: .utf8), string.last?.isNewline == true {
+            buffer.removeAll()
+            return string
+        }
+        return nil
     }
 }
 
 final class REPL {
     private let process = Process()
     private let stdIn = Pipe()
-    private let stdOut = Pipe()
     private let stdErr = Pipe()
-
+    private let stdOut = Pipe()
+    
     private var stdOutToken: Any?
     private var stdErrToken: Any?
 
@@ -114,42 +148,31 @@ final class REPL {
         process.launchPath = "/usr/bin/swift"
         process.standardInput = stdIn.fileHandleForReading
         process.standardOutput = stdOut.fileHandleForWriting
-        process.standardError = stdOut.fileHandleForWriting
-
-        stdOutToken = NotificationCenter.default.addObserver(forName: .NSFileHandleDataAvailable, object: stdOut.fileHandleForReading, queue: nil) { [unowned self] note in
-            let data = self.stdOut.fileHandleForReading.availableData
-            let string = String(data: data, encoding: .utf8)!
-            onStdOut(string)
+        process.standardError = stdErr.fileHandleForWriting
+        
+        var stdOutBuffer = REPLBuffer()
+        stdOutToken = NotificationCenter.default.addObserver(forName: .NSFileHandleDataAvailable, object: stdOut.fileHandleForReading, queue: nil, using: { [unowned self] note in
+            if let string = stdOutBuffer.append(self.stdOut.fileHandleForReading.availableData) {
+                onStdOut(string)
+            }
             self.stdOut.fileHandleForReading.waitForDataInBackgroundAndNotify()
-        }
+        })
 
-        stdErrToken = NotificationCenter.default.addObserver(forName: .NSFileHandleDataAvailable, object: stdOut.fileHandleForReading, queue: nil) { [unowned self] note in
-            let data = self.stdErr.fileHandleForReading.availableData
-            let string = String(data: data, encoding: .utf8)!
-            onStdErr(string)
+        var stdErrBuffer = REPLBuffer()
+        stdErrToken = NotificationCenter.default.addObserver(forName: .NSFileHandleDataAvailable, object: stdErr.fileHandleForReading, queue: nil, using: { [unowned self] note in
+            if let string = stdErrBuffer.append(self.stdErr.fileHandleForReading.availableData) {
+                onStdErr(string)
+            }
             self.stdErr.fileHandleForReading.waitForDataInBackgroundAndNotify()
-        }
+        })
 
         process.launch()
         stdOut.fileHandleForReading.waitForDataInBackgroundAndNotify()
         stdErr.fileHandleForReading.waitForDataInBackgroundAndNotify()
     }
-
+    
     func execute(_ code: String) {
         stdIn.fileHandleForWriting.write(code.data(using: .utf8)!)
-    }
-}
-
-extension String {
-
-    var lineOffsets: [String.Index] {
-        var result = [startIndex]
-        for index in indices {
-            if self[index] == "\n" {
-                result.append(self.index(after: index))
-            }
-        }
-        return result
     }
 }
 
@@ -164,6 +187,8 @@ extension CommonMark.Node {
     }
 }
 
-let delegate = AppDelegate()
-let app = application(delegate: delegate)
-app.run()
+public func runApplication() {
+    let delegate = AppDelegate()
+    let app = application(delegate: delegate)
+    app.run()
+}
